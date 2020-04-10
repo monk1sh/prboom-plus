@@ -269,6 +269,7 @@ typedef enum {
 #define KEYD_PAUSE      0xff
 #define KEYD_EQUALS     0x3d
 #define KEYD_MINUS      0x2d
+#define KEYD_SHIFT      0x4b
 #define KEYD_RSHIFT     (0x80+0x36)
 #define KEYD_RCTRL      (0x80+0x1d)
 #define KEYD_RALT       (0x80+0x38)

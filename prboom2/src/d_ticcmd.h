@@ -50,6 +50,7 @@ typedef struct
 {
   signed char forwardmove;  /* *2048 for move       */
   signed char sidemove; /* *2048 for move       */
+  signed char dashmove;
   signed short  angleturn;  /* <<16 for angle delta */
   short consistancy;          /* checks for net game  */
   byte  chatchar;

@@ -91,7 +91,7 @@ void P_Thrust(player_t* player,angle_t angle,fixed_t move)
  * killough 10/98: We apply thrust separately between the real physical player
  * and the part which affects bobbing. This way, bobbing only comes from player
  * motion, nothing external, avoiding many problems, e.g. bobbing should not
- * occur on conveyors, unless the player walks on one, and bobbing should be
+ * occur on conveyors, unless the player walks MAXPLMOVEon one, and bobbing should be
  * reduced at a regular rate, even on ice (where the player coasts).
  */
 
@@ -288,12 +288,13 @@ void P_MovePlayer (player_t* player)
 
   if (comperr(comperr_allowjump))
   {
-    if (upmove > 0 && onground && player == &players[consoleplayer] && !(player->mo->flags & MF_FLY))
+    if (upmove > 0 && (onground || player->doublejump) && player == &players[consoleplayer] && !(player->mo->flags & MF_FLY))
     {
       if (!player->jumpTics)
       {
-        mo->momz = (7 + default_comperr[comperr_allowjump]) * FRACUNIT;
-        player->jumpTics = 18;
+        mo->momz = (8 + default_comperr[comperr_allowjump]) * FRACUNIT;
+        player->jumpTics = 14;
+        player->doublejump = onground;
       }
     }
   }
@@ -309,7 +310,8 @@ void P_MovePlayer (player_t* player)
   if ((!demo_compatibility && !mbf_features && !prboom_comp[PC_PRBOOM_FRICTION].state) || 
     (cmd->forwardmove | cmd->sidemove)) // killough 10/98
     {
-      if (onground || mo->flags & MF_BOUNCES || (mo->flags & MF_FLY)) // killough 8/9/98
+      dboolean dashing = (player->cmd.buttons & BT_DASH) && !player->dashtics && (player->dashes < 1);
+      if (onground || dashing || mo->flags & MF_BOUNCES || (mo->flags & MF_FLY)) // killough 8/9/98
       {
         int friction, movefactor = P_GetMoveFactor(mo, &friction);
 
@@ -319,17 +321,36 @@ void P_MovePlayer (player_t* player)
 
         int bobfactor =
           friction < ORIG_FRICTION ? movefactor : ORIG_FRICTION_FACTOR;
+        if (dashing)
+        {
+          player->dashtics = 14;
+          player->dashes += 1;
+        }
 
         if (cmd->forwardmove)
         {
           P_Bob(player,mo->angle,cmd->forwardmove*bobfactor);
-          P_Thrust(player,mo->angle,cmd->forwardmove*movefactor);
+          if (dashing)
+          {
+            P_Thrust(player,mo->angle,(cmd->forwardmove > 0 ? 1 : -1)*MAXMOVE);
+          }
+          else
+          {
+            P_Thrust(player,mo->angle,cmd->forwardmove*movefactor);
+          }
         }
 
         if (cmd->sidemove)
         {
           P_Bob(player,mo->angle-ANG90,cmd->sidemove*bobfactor);
-          P_SideThrust(player,mo->angle-ANG90,cmd->sidemove*movefactor);
+          if (dashing)
+          {
+            P_SideThrust(player,mo->angle-ANG90,(cmd->sidemove > 0 ? 1 : -1)*MAXMOVE);
+          }
+          else
+          {
+            P_SideThrust(player,mo->angle-ANG90,cmd->sidemove*movefactor);
+          }
         }
       }
       else if (comperr(comperr_allowjump))
@@ -473,6 +494,18 @@ void P_PlayerThink (player_t* player)
     {
         player->jumpTics--;
     }
+
+    if (player->dashtics)
+    {
+      player->dashtics--;
+    }
+
+    onground = player->mo->z <= player->mo->floorz;
+    if (onground)
+    {
+      player->dashes = 0;
+    }
+
   // Move around.
   // Reactiontime is used to prevent movement
   //  for a bit after a teleport.

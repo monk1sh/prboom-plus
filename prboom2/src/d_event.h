@@ -102,6 +102,8 @@ BT_WEAPONMASK_OLD   = (8+16+32),//e6y
   BT_WEAPONMASK   = (8+16+32+64), // extended to pick up SSG        // phares
   BT_WEAPONSHIFT  = 3,
 
+  BT_DASH = 8,
+
   // Special events
   BTS_LOADGAME    = 0, // Loads a game
   // Pause the game.

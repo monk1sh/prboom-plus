@@ -436,6 +436,11 @@ static void P_ZMovement (mobj_t* mo)
    * (e.g. grenade, mine, pipebomb)
    */
 
+  if (mo->player && mo->player->dashtics > 12)
+  {
+    return;
+  }
+
   if (mo->flags & MF_BOUNCES && mo->momz) {
     mo->z += mo->momz;
     if (mo->z <= mo->floorz) {                /* bounce off floors */

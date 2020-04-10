@@ -236,6 +236,8 @@ int     key_weapon9;                                                // phares
 int     key_nextweapon;
 int     key_prevweapon;
 
+int     key_dash = KEYD_RSHIFT;
+
 int     key_screenshot;             // killough 2/22/98: screenshot key
 int     mousebfire;
 int     mousebstrafe;
@@ -459,6 +461,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int tspeed;
   int forward;
   int side;
+  int dash;
   int newweapon;                                          // phares
   /* cphipps - remove needless I_BaseTiccmd call, just set the ticcmd to zero */
   memset(cmd,0,sizeof*cmd);
@@ -467,9 +470,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe]
     || joybuttons[joybstrafe];
   //e6y: the "RUN" key inverts the autorun state
-  speed = (gamekeydown[key_speed] || joybuttons[joybspeed] ? !autorun : autorun); // phares
+  //speed = (gamekeydown[key_speed] || joybuttons[joybspeed] ? !autorun : autorun); // phares
+  speed = autorun;
 
-  forward = side = 0;
+  forward = side = dash = 0;
 
   G_SkipDemoCheck(); //e6y
 
@@ -525,7 +529,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       if (joyxmove < 0)
         cmd->angleturn += angleturn[tspeed];
     }
-
+ 
   if (gamekeydown[key_up])
     forward += forwardmove[speed];
   if (gamekeydown[key_down])
@@ -538,6 +542,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     side += sidemove[speed];
   if (gamekeydown[key_strafeleft] || joybuttons[joybstrafeleft])
     side -= sidemove[speed];
+
+  if (gamekeydown[key_dash])
+    cmd->buttons |= BT_DASH;
 
     // buttons
   cmd->chatchar = HU_dequeueChatChar();
@@ -731,6 +738,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   cmd->forwardmove += fudgef((signed char)forward);
   cmd->sidemove += side;
+  cmd->dashmove += dash;
   cmd->angleturn = fudgea(cmd->angleturn);
 
   upmove = 0;

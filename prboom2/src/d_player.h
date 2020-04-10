@@ -197,6 +197,10 @@ typedef struct player_s
   angle_t prev_viewangle;
   angle_t prev_viewpitch;
   fixed_t jumpTics;      // delay the next jump for a moment
+  dboolean doublejump;
+  fixed_t dashtics;
+  dboolean doubledash;
+  fixed_t dashes;
 } player_t;
 
 
